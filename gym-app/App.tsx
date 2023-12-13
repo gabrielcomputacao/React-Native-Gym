@@ -4,18 +4,33 @@ import {
   Roboto_400Regular,
   Roboto_700Bold,
 } from "@expo-google-fonts/roboto";
+import { NativeBaseProvider } from "native-base";
+import { Loading } from "@components/Loading";
+import { THEME } from "./src/theme";
 
 export default function App() {
   const [fontsLoaded] = useFonts({ Roboto_400Regular, Roboto_700Bold });
 
   return (
-    <View style={{ alignItems: "center", flex: 1, justifyContent: "center" }}>
+    <NativeBaseProvider theme={THEME}>
       <StatusBar
         barStyle="light-content"
         backgroundColor="transparent"
         translucent
       />
-      {fontsLoaded ? <Text> Hello World</Text> : <View />}
-    </View>
+      {fontsLoaded ? (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text>Hello World </Text>
+        </View>
+      ) : (
+        <Loading />
+      )}
+    </NativeBaseProvider>
   );
 }
