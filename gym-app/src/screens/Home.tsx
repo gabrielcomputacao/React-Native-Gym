@@ -5,8 +5,14 @@ import { HStack, VStack, FlatList, Heading, Text } from "native-base";
 import { useState } from "react";
 
 export function Home() {
-  const [groupSelected, setGroupSelected] = useState("costa");
+  const [groupSelected, setGroupSelected] = useState("Costas");
   const [groups, setGroups] = useState([
+    "Costas",
+    "Ombro",
+    "Biceps",
+    "Triceps",
+  ]);
+  const [exercises, setExercises] = useState([
     "costas",
     "ombro",
     "Biceps",
@@ -23,7 +29,7 @@ export function Home() {
         renderItem={({ item }) => (
           <Group
             name={item}
-            isActive={groupSelected === item}
+            isActive={groupSelected.toUpperCase() === item.toUpperCase()}
             onPress={() => setGroupSelected(item)}
           />
         )}
@@ -42,10 +48,17 @@ export function Home() {
             Exercícios
           </Heading>
           <Text color="gray.200" fontSize="sm">
-            4
+            {exercises.length}
           </Text>
         </HStack>
-        <ExerciseCard />
+
+        <FlatList
+          data={exercises}
+          keyExtractor={(item, index) => String(index)}
+          renderItem={({ item }) => <ExerciseCard />}
+          showsVerticalScrollIndicator={false}
+          _contentContainerStyle={{ px: 8 }}
+        />
       </VStack>
     </VStack>
   );
