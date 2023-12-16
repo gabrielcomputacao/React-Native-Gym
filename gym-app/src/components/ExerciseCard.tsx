@@ -28,7 +28,7 @@ export function ExerciseCard({ ...rest }: ExerciseCardProps) {
         />
 
         <VStack flex={1}>
-          <Heading fontSize="lg" color="white">
+          <Heading fontSize="lg" color="white" fontFamily="heading">
             Remada Baixa
           </Heading>
           <Text fontSize="sm" color="gray.200" numberOfLines={2} mt={1}>

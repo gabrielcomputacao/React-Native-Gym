@@ -28,7 +28,13 @@ export function History() {
         renderItem={({ item }) => <HistoryCard />}
         /* renderiza o titulo e separa pelo que foi colocado no state */
         renderSectionHeader={({ section }) => (
-          <Heading color="gray.200" fontSize="md" mt={10} mb={3}>
+          <Heading
+            color="gray.200"
+            fontSize="md"
+            mt={10}
+            mb={3}
+            fontFamily="heading"
+          >
             {section.title}
           </Heading>
         )}

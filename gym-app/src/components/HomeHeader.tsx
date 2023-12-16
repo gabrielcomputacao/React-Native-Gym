@@ -23,7 +23,9 @@ export function HomeHeader() {
           Olá
         </Text>
 
-        <Heading>Gabriel</Heading>
+        <Heading color="gray.100" fontFamily="heading" fontSize="md">
+          Gabriel
+        </Heading>
       </VStack>
       <TouchableOpacity>
         <Icon as={MaterialIcons} name="logout" color="gray.200" size={7} />
