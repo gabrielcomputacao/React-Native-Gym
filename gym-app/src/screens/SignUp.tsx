@@ -43,7 +43,20 @@ export function SignUp() {
     navigation.goBack();
   }
 
-  function handleSignUp(data: FormDataProps) {}
+  function handleSignUp({ name, email, password }: FormDataProps) {
+    console.log({ name, email, password });
+    console.log(JSON.stringify({ name, email, password }));
+    fetch("http://192.168.2.107:3333/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, email, password }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data))
+      .catch((err) => console.log(err));
+  }
 
   return (
     <ScrollView
