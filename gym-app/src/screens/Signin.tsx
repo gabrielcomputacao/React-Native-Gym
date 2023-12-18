@@ -1,4 +1,12 @@
-import { VStack, Image, Text, Center, Heading, ScrollView } from "native-base";
+import {
+  VStack,
+  Image,
+  Text,
+  Center,
+  Heading,
+  ScrollView,
+  useToast,
+} from "native-base";
 
 import BackgroundImg from "@assets/background.png";
 import LogoSvg from "@assets/logo.svg";
@@ -6,12 +14,56 @@ import { Input } from "@components/Input";
 import { Button } from "@components/Button";
 import { useNavigation } from "@react-navigation/native";
 import { AuthNavigatorRoutesProps } from "@routes/auth.routes";
+import { Controller, useForm } from "react-hook-form";
+import { useAuth } from "@hooks/useAuth";
+import { AppError } from "@utils/AppError";
+import { useState } from "react";
+
+type SiginProps = {
+  email: string;
+  password: string;
+};
 
 export function SignIn() {
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SiginProps>();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const toast = useToast();
+
+  const { signIn } = useAuth();
 
   function handleNewAccount() {
     navigation.navigate("SignUp");
+  }
+
+  async function handleSignIn({ email, password }: SiginProps) {
+    try {
+      setIsLoading(true);
+      await signIn(email, password);
+
+      /* setar um state depois que a tela foi desmontada pode gerar vazamento de memoria
+        pode isso nao está setando o isloafing para false novamente ja que o usuario vai ser redirecionado.
+      */
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+
+      const title = isAppError
+        ? error.message
+        : "Não foi possivel entrar.Tente mais tarde.";
+
+      setIsLoading(false);
+
+      toast.show({
+        title,
+        placement: "top",
+        bgColor: "red.500",
+      });
+    }
   }
 
   return (
@@ -43,14 +95,39 @@ export function SignIn() {
             Acesse sua Conta
           </Heading>
 
-          <Input
-            placeholder="E-mail"
-            keyboardType="email-address"
-            autoCapitalize="none"
+          <Controller
+            name="email"
+            control={control}
+            rules={{ required: "Informe o email." }}
+            render={({ field: { onChange } }) => (
+              <Input
+                placeholder="E-mail"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                onChangeText={onChange}
+                errorMessage={errors.email?.message}
+              />
+            )}
           />
-          <Input placeholder="Senha" secureTextEntry />
+          <Controller
+            name="password"
+            control={control}
+            rules={{ required: "Digite sua senha." }}
+            render={({ field: { onChange } }) => (
+              <Input
+                placeholder="Senha"
+                secureTextEntry
+                onChangeText={onChange}
+                errorMessage={errors.password?.message}
+              />
+            )}
+          />
 
-          <Button title="Acessar" />
+          <Button
+            title="Acessar"
+            onPress={handleSubmit(handleSignIn)}
+            isLoading={isLoading}
+          />
         </Center>
 
         <Center mt={24}>
