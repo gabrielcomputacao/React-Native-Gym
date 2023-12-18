@@ -1,4 +1,12 @@
-import { VStack, Image, Text, Center, Heading, ScrollView } from "native-base";
+import {
+  VStack,
+  Image,
+  Text,
+  Center,
+  Heading,
+  ScrollView,
+  useToast,
+} from "native-base";
 
 import BackgroundImg from "@assets/background.png";
 import LogoSvg from "@assets/logo.svg";
@@ -8,6 +16,9 @@ import { useNavigation } from "@react-navigation/native";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { api } from "@services/api";
+import axios from "axios";
+import { AppError } from "@utils/AppError";
 
 type FormDataProps = {
   name: string;
@@ -30,6 +41,8 @@ const signUpSchema = yup.object({
 });
 
 export function SignUp() {
+  const toast = useToast();
+
   const navigation = useNavigation();
   const {
     control,
@@ -44,18 +57,34 @@ export function SignUp() {
   }
 
   function handleSignUp({ name, email, password }: FormDataProps) {
-    console.log({ name, email, password });
-    console.log(JSON.stringify({ name, email, password }));
-    fetch("http://192.168.2.107:3333/users", {
+    /* ip usando wifi 192.168.2.110 */
+    /* ip usando rede 192.168.2.107 */
+    /*  fetch("http://192.168.2.110:3333/users", {
       method: "POST",
       headers: {
+        Accept: "application/json",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ name, email, password }),
     })
       .then((response) => response.json())
       .then((data) => console.log(data))
-      .catch((err) => console.log(err));
+      .catch((err) => console.log(err)); */
+
+    api
+      .post("/users", { name, email, password })
+      .then((response) => console.log(response.data))
+      .catch((error) => {
+        const isAppError = error instanceof AppError;
+
+        const title = isAppError ? error.message : "Não foi possível cadastrar";
+
+        toast.show({
+          title,
+          bgColor: "red.500",
+          placement: "top",
+        });
+      });
   }
 
   return (
