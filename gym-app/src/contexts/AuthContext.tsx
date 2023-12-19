@@ -1,6 +1,10 @@
 import { UserDTO } from "@dtos/UserDTO";
 import { api } from "@services/api";
-import { storageAuthStorageSave } from "@storage/storageAuthToken";
+import {
+  storageAuthStorageSave,
+  storageAuthTokenGet,
+  storageAuthTokenRemove,
+} from "@storage/storageAuthToken";
 import {
   storageUserSave,
   storageUserGet,
@@ -28,17 +32,20 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
   const [isLoadingUserStorageData, setIsLoadingUserStorageData] =
     useState(true);
 
-  async function storageUserAndToken(userData: UserDTO, token: string) {
+  async function userAndTokenUpdate(userData: UserDTO, token: string) {
+    /* insere os dados no cabeçalho da requisição */
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    setUser(userData);
+  }
+
+  async function userAndTokenStorageSave(userData: UserDTO, token: string) {
     try {
       setIsLoadingUserStorageData(true);
 
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-      setUser(userData);
-      storageUserSave(userData);
-      storageAuthStorageSave(token);
+      await storageUserSave(userData);
+      await storageAuthStorageSave(token);
     } catch (error) {
-      throw error;
     } finally {
       setIsLoadingUserStorageData(false);
     }
@@ -49,10 +56,13 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
       const { data } = await api.post("/sessions", { email, password });
 
       if (data.user && data.token) {
-        storageUserAndToken(data.user, data.token);
+        await userAndTokenStorageSave(data.user, data.token);
+        userAndTokenUpdate(data.user, data.token);
       }
     } catch (error) {
       throw error;
+    } finally {
+      setIsLoadingUserStorageData(false);
     }
   }
 
@@ -61,6 +71,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
       setIsLoadingUserStorageData(true);
       setUser({} as UserDTO);
       await storageUserRemove();
+      await storageAuthTokenRemove();
     } catch (error) {
       throw error;
     } finally {
@@ -70,10 +81,13 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 
   async function loadUserData() {
     try {
-      const userLogged = await storageUserGet();
+      setIsLoadingUserStorageData(true);
 
-      if (userLogged) {
-        setUser(userLogged);
+      const userLogged = await storageUserGet();
+      const token = await storageAuthTokenGet();
+
+      if (userLogged && token) {
+        userAndTokenUpdate(userLogged, token);
       }
     } catch (error) {
       throw error;
