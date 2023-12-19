@@ -19,6 +19,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { api } from "@services/api";
 import axios from "axios";
 import { AppError } from "@utils/AppError";
+import { useState } from "react";
+import { useAuth } from "@hooks/useAuth";
 
 type FormDataProps = {
   name: string;
@@ -42,6 +44,8 @@ const signUpSchema = yup.object({
 
 export function SignUp() {
   const toast = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
 
   const navigation = useNavigation();
   const {
@@ -71,10 +75,16 @@ export function SignUp() {
       .then((data) => console.log(data))
       .catch((err) => console.log(err)); */
 
+    setIsLoading(true);
+
     api
       .post("/users", { name, email, password })
-      .then((response) => console.log(response.data))
+      .then((response) => {
+        signIn(email, password);
+      })
       .catch((error) => {
+        setIsLoading(false);
+
         const isAppError = error instanceof AppError;
 
         const title = isAppError ? error.message : "Não foi possível cadastrar";
@@ -175,6 +185,7 @@ export function SignUp() {
           <Button
             title="Criar e acessar"
             onPress={handleSubmit(handleSignUp)}
+            isLoading={isLoading}
           />
         </Center>
 
