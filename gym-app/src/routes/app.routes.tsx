@@ -15,7 +15,7 @@ import { useTheme } from "native-base";
 
 type AppRoutesProps = {
   home: undefined;
-  exercise: undefined;
+  exercise: { exerciseId: string };
   profile: undefined;
   history: undefined;
 };
