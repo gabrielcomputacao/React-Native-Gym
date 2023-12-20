@@ -23,6 +23,8 @@ import { useAuth } from "@hooks/useAuth";
 import { AppError } from "@utils/AppError";
 import { api } from "@services/api";
 
+import defaultPhotoAvatar from "@assets/userPhotoDefault.png";
+
 const PHOTO_SIZE = 33;
 
 type FormDataProps = {
@@ -64,9 +66,7 @@ export function Profile() {
   const { user, updatedUserProfile } = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
-  const [userPhoto, setUserPhoto] = useState(
-    "https://github.com/gabrielcomputacao.png"
-  );
+
   const {
     control,
     handleSubmit,
@@ -145,7 +145,39 @@ export function Profile() {
           });
         }
 
-        setUserPhoto(photoSelected.assets[0].uri);
+        const fileExtension = photoSelected.assets[0].uri.split(".").pop();
+
+        const photoFile = {
+          name: `${user.name}.${fileExtension}`.toLowerCase(),
+          uri: photoSelected.assets[0].uri,
+          type: `${photoSelected.assets[0].type}/${fileExtension}`,
+        } as any;
+
+        const userPhotoUploadForm = new FormData();
+        /* o append adiciona esses requisitos ao formulario, e o nome do campo tem que ser igual do backend e o segundo parametro sao os
+          dados que serão salvos
+        */
+        userPhotoUploadForm.append("avatar", photoFile);
+
+        const avatarUpdatedResponse = await api.patch(
+          "/users/avatar",
+          userPhotoUploadForm,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        const userUpdated = user;
+        userUpdated.avatar = avatarUpdatedResponse.data.avatar;
+        updatedUserProfile(userUpdated);
+
+        toast.show({
+          title: "Foto Atualizada!",
+          placement: "top",
+          color: "red.500",
+        });
       }
     } catch (error) {
       console.log(error);
@@ -164,7 +196,11 @@ export function Profile() {
             <Skeleton w={PHOTO_SIZE} h={PHOTO_SIZE} rounded="full" />
           ) : (
             <UserPhoto
-              source={{ uri: userPhoto }}
+              source={
+                user.avatar
+                  ? { uri: `${api.defaults.baseURL}/avatar/${user.avatar}` }
+                  : defaultPhotoAvatar
+              }
               alt="Imagem do usuario"
               size={PHOTO_SIZE}
             />
