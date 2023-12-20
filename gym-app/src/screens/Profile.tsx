@@ -20,6 +20,8 @@ import {
 import { useState } from "react";
 import { TouchableOpacity } from "react-native";
 import { useAuth } from "@hooks/useAuth";
+import { AppError } from "@utils/AppError";
+import { api } from "@services/api";
 
 const PHOTO_SIZE = 33;
 
@@ -28,7 +30,7 @@ type FormDataProps = {
   email: string;
   password?: string | null;
   confirm_password?: string | null;
-  old_password: string;
+  old_password?: string;
 };
 
 const profileSchema = yup.object({
@@ -55,11 +57,12 @@ const profileSchema = yup.object({
           .required("Informe a confirmação da senha.")
           .transform((value) => (!!value ? value : null)),
     }),
-  old_password: yup.string().required("Informe o nome"),
+  old_password: yup.string(),
 });
 
 export function Profile() {
-  const { user } = useAuth();
+  const { user, updatedUserProfile } = useAuth();
+  const [isUpdating, setIsUpdating] = useState(false);
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
   const [userPhoto, setUserPhoto] = useState(
     "https://github.com/gabrielcomputacao.png"
@@ -79,7 +82,39 @@ export function Profile() {
   const toast = useToast();
 
   async function handleProfileUpdate(data: FormDataProps) {
-    console.log(data);
+    try {
+      setIsUpdating(true);
+
+      const userUpdated = user;
+      userUpdated.name = data.name;
+
+      await updatedUserProfile(userUpdated);
+
+      await api.put("/users", {
+        name: data.name,
+        password: data.password,
+        old_password: data.old_password,
+      });
+
+      toast.show({
+        title: "Atualizado com sucesso!",
+        placement: "top",
+        bgColor: "green.500",
+      });
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+      const title = isAppError
+        ? error.message
+        : "Não foi possível carregar os detales do exercicio";
+
+      toast.show({
+        title,
+        placement: "top",
+        bgColor: "red.500",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   }
 
   async function handleUserPhotoSelect() {
@@ -223,6 +258,7 @@ export function Profile() {
             title="Atualizar"
             mt={4}
             onPress={handleSubmit(handleProfileUpdate)}
+            isLoading={isUpdating}
           />
         </VStack>
       </ScrollView>
