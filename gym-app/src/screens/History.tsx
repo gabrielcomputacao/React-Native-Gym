@@ -1,19 +1,46 @@
 import { HistoryCard } from "@components/HistoryCard";
 import { ScreenHeader } from "@components/ScreenHeader";
-import { Heading, VStack, SectionList, Text } from "native-base";
-import { useState } from "react";
+import { HistoryByDayDTO } from "@dtos/HistoryByDayDTO";
+import { HistoryDTO } from "@dtos/HistoryDTO";
+import { useFocusEffect } from "@react-navigation/native";
+import { api } from "@services/api";
+import { AppError } from "@utils/AppError";
+import { Heading, VStack, SectionList, Text, useToast } from "native-base";
+import { useCallback, useState } from "react";
 
 export function History() {
-  const [exercises, setExercises] = useState([
-    {
-      title: "15.08.23",
-      data: ["costas"],
-    },
-    {
-      title: "16.08.23",
-      data: ["Puxada Frontal"],
-    },
-  ]);
+  const toast = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+  const [exercises, setExercises] = useState<HistoryByDayDTO[]>([]);
+
+  async function fetchHistory() {
+    try {
+      setIsLoading(true);
+
+      const response = await api.get("/history");
+
+      setExercises(response.data);
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+      const title = isAppError
+        ? error.message
+        : "Não foi possível carregar o histórico";
+
+      toast.show({
+        title,
+        placement: "top",
+        bgColor: "red.500",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchHistory();
+    }, [])
+  );
 
   return (
     <VStack flex={1}>
@@ -24,8 +51,8 @@ export function History() {
 
       <SectionList
         sections={exercises}
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => <HistoryCard />}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <HistoryCard data={item} />}
         /* renderiza o titulo e separa pelo que foi colocado no state */
         renderSectionHeader={({ section }) => (
           <Heading
