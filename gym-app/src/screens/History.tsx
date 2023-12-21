@@ -1,4 +1,5 @@
 import { HistoryCard } from "@components/HistoryCard";
+import { Loading } from "@components/Loading";
 import { ScreenHeader } from "@components/ScreenHeader";
 import { HistoryByDayDTO } from "@dtos/HistoryByDayDTO";
 import { HistoryDTO } from "@dtos/HistoryDTO";
@@ -49,35 +50,39 @@ export function History() {
       {/* consegue renderizar o componente e consegue dividir por meio de um componente que vai ser um header para formatação de um grupo,
     o sectionList faz a separação por meio de grupos coisa que o flat list nao faz automatico  */}
 
-      <SectionList
-        sections={exercises}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <HistoryCard data={item} />}
-        /* renderiza o titulo e separa pelo que foi colocado no state */
-        renderSectionHeader={({ section }) => (
-          <Heading
-            color="gray.200"
-            fontSize="md"
-            mt={10}
-            mb={3}
-            fontFamily="heading"
-          >
-            {section.title}
-          </Heading>
-        )}
-        px={8}
-        ListEmptyComponent={() => (
-          <Text color="gray.100" textAlign="center">
-            {/* quebra de linha no react */}
-            Não há exercícios registrados ainda. {"\n"}
-            Vamos exercitar hoje?
-          </Text>
-        )}
-        contentContainerStyle={
-          exercises.length === 0 && { flex: 1, justifyContent: "center" }
-        }
-        showsVerticalScrollIndicator={false}
-      />
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <SectionList
+          sections={exercises}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <HistoryCard data={item} />}
+          /* renderiza o titulo e separa pelo que foi colocado no state */
+          renderSectionHeader={({ section }) => (
+            <Heading
+              color="gray.200"
+              fontSize="md"
+              mt={10}
+              mb={3}
+              fontFamily="heading"
+            >
+              {section.title}
+            </Heading>
+          )}
+          px={8}
+          ListEmptyComponent={() => (
+            <Text color="gray.100" textAlign="center">
+              {/* quebra de linha no react */}
+              Não há exercícios registrados ainda. {"\n"}
+              Vamos exercitar hoje?
+            </Text>
+          )}
+          contentContainerStyle={
+            exercises.length === 0 && { flex: 1, justifyContent: "center" }
+          }
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </VStack>
   );
 }
